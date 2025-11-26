@@ -26,8 +26,8 @@
         }
 
         .clock {
-            width: 340px;
-            height: 340px;
+            width: 500px;  /* Increased from 340px */
+            height: 500px; /* Increased from 340px */
             background: #000000;
             border-radius: 50%;
             position: relative;
@@ -38,10 +38,10 @@
         .clock::after {
             content: '';
             position: absolute;
-            width: 8px; /* Slightly smaller to match second hand width better */
-            height: 8px;
+            width: 12px; 
+            height: 12px;
             background: #000; 
-            border: 2px solid var(--hand-second);
+            border: 3px solid var(--hand-second); /* Thicker border */
             border-radius: 50%;
             top: 50%;
             left: 50%;
@@ -49,11 +49,7 @@
             z-index: 20;
         }
 
-        /* UPDATED HAND ALIGNMENT STRATEGY 
-           1. We position 'left' exactly by subtracting half-width (removes need for translateX).
-           2. We position 'bottom' so the pivot point aligns with the clock center (50%).
-           3. We set 'transform-origin' to the specific pivot pixel.
-        */
+        /* HANDS SCALED UP */
 
         .hand {
             position: absolute;
@@ -62,54 +58,45 @@
         }
 
         .hand.hour {
-            width: 8px;
-            height: 80px;
+            width: 12px;      /* 8px -> 12px */
+            height: 120px;    /* 80px -> 120px */
             background: var(--hand-hour);
             z-index: 11;
             
-            /* Center horizontally: 50% - 4px (half width) */
-            left: calc(50% - 4px);
+            left: calc(50% - 6px);
             
-            /* Pivot Logic: 
-               We want the pivot to be 4px from the bottom (center of the rounded cap).
-               So we place the bottom 4px BELOW the center line. */
-            bottom: calc(50% - 4px);
-            transform-origin: 50% calc(100% - 4px);
+            /* Pivot 6px from bottom */
+            bottom: calc(50% - 6px);
+            transform-origin: 50% calc(100% - 6px);
         }
 
         .hand.minute {
-            width: 6px;
-            height: 130px;
+            width: 10px;      /* 6px -> 10px */
+            height: 190px;    /* 130px -> 190px */
             background: var(--hand-minute);
             z-index: 12;
             
-            /* Center horizontally: 50% - 3px */
-            left: calc(50% - 3px);
+            left: calc(50% - 5px);
             
-            /* Pivot Logic: 
-               Pivot 3px from bottom. Place bottom 3px below center. */
-            bottom: calc(50% - 3px);
-            transform-origin: 50% calc(100% - 3px);
+            /* Pivot 5px from bottom */
+            bottom: calc(50% - 5px);
+            transform-origin: 50% calc(100% - 5px);
         }
 
         .hand.second {
-            width: 2px;
-            height: 160px; /* Total length including tail */
+            width: 4px;       /* 2px -> 4px */
+            height: 240px;    /* 160px -> 240px */
             background: var(--hand-second);
             z-index: 13;
             
-            /* Center horizontally: 50% - 1px */
-            left: calc(50% - 1px);
+            left: calc(50% - 2px);
             
-            /* Pivot Logic:
-               Let's have a 30px tail. 
-               Pivot is 30px from bottom.
-               Place bottom 30px below center. */
-            bottom: calc(50% - 30px);
-            transform-origin: 50% calc(100% - 30px);
+            /* Pivot 45px from bottom (longer tail) */
+            bottom: calc(50% - 45px);
+            transform-origin: 50% calc(100% - 45px);
         }
 
-        /* Markers */
+        /* MARKERS SCALED UP */
         .marker {
             position: absolute;
             width: 2px;
@@ -126,33 +113,33 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 8px;
+            height: 12px; /* 8px -> 12px */
             background-color: var(--marker-color);
         }
 
         .marker.hour-marker {
-            width: 6px;
+            width: 8px; /* 6px -> 8px */
         }
 
         .marker.hour-marker::before {
-            height: 18px;
-            width: 6px;
+            height: 30px; /* 18px -> 30px */
+            width: 8px;
             background-color: var(--marker-hour-color);
-            border-radius: 2px;
+            border-radius: 4px;
         }
 
-        /* Numbers */
+        /* NUMBERS SCALED UP */
         .number {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 40px;
-            height: 40px;
+            width: 60px;
+            height: 60px;
             display: flex;
             justify-content: center;
             align-items: center;
             color: #ffffff;
-            font-size: 1.6rem; 
+            font-size: 2.5rem; /* 1.6rem -> 2.5rem */
             font-weight: 600;
             letter-spacing: -0.5px;
             pointer-events: none;
@@ -190,8 +177,12 @@
         }
 
         function createNumbers() {
-            // Radius 132 aligns numbers nicely with the gaps
-            const radius = 132; 
+            // New Radius Calculation
+            // Clock radius: 250px.
+            // Tick length: 30px.
+            // Gap: ~25px.
+            // 250 - 30 - 25 = 195px
+            const radius = 195; 
             
             for (let i = 1; i <= 12; i++) {
                 const numberDiv = document.createElement('div');
@@ -222,7 +213,6 @@
             const minutesDegrees = minutesRatio * 360;
             const hoursDegrees = hoursRatio * 360;
 
-            // Simplified rotation logic (removed translateX since we handled it in CSS)
             secondHand.style.transform = `rotate(${secondsDegrees}deg)`;
             minuteHand.style.transform = `rotate(${minutesDegrees}deg)`;
             hourHand.style.transform = `rotate(${hoursDegrees}deg)`;
