@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Analog Clock</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --hand-hour: #ffffff;
+            --hand-minute: #ffffff;
+            --hand-second: #ff9f0a;
+            --marker-color: #3a3a3c;
+            --marker-hour-color: #ffffff;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .clock {
+            width: 340px;
+            height: 340px;
+            background: #000000;
+            border-radius: 50%;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* Center Cap */
+        .clock::after {
+            content: '';
+            position: absolute;
+            width: 8px; /* Slightly smaller to match second hand width better */
+            height: 8px;
+            background: #000; 
+            border: 2px solid var(--hand-second);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+        }
+
+        /* UPDATED HAND ALIGNMENT STRATEGY 
+           1. We position 'left' exactly by subtracting half-width (removes need for translateX).
+           2. We position 'bottom' so the pivot point aligns with the clock center (50%).
+           3. We set 'transform-origin' to the specific pivot pixel.
+        */
+
+        .hand {
+            position: absolute;
+            border-radius: 100px;
+            z-index: 10;
+        }
+
+        .hand.hour {
+            width: 8px;
+            height: 80px;
+            background: var(--hand-hour);
+            z-index: 11;
+            
+            /* Center horizontally: 50% - 4px (half width) */
+            left: calc(50% - 4px);
+            
+            /* Pivot Logic: 
+               We want the pivot to be 4px from the bottom (center of the rounded cap).
+               So we place the bottom 4px BELOW the center line. */
+            bottom: calc(50% - 4px);
+            transform-origin: 50% calc(100% - 4px);
+        }
+
+        .hand.minute {
+            width: 6px;
+            height: 130px;
+            background: var(--hand-minute);
+            z-index: 12;
+            
+            /* Center horizontally: 50% - 3px */
+            left: calc(50% - 3px);
+            
+            /* Pivot Logic: 
+               Pivot 3px from bottom. Place bottom 3px below center. */
+            bottom: calc(50% - 3px);
+            transform-origin: 50% calc(100% - 3px);
+        }
+
+        .hand.second {
+            width: 2px;
+            height: 160px; /* Total length including tail */
+            background: var(--hand-second);
+            z-index: 13;
+            
+            /* Center horizontally: 50% - 1px */
+            left: calc(50% - 1px);
+            
+            /* Pivot Logic:
+               Let's have a 30px tail. 
+               Pivot is 30px from bottom.
+               Place bottom 30px below center. */
+            bottom: calc(50% - 30px);
+            transform-origin: 50% calc(100% - 30px);
+        }
+
+        /* Markers */
+        .marker {
+            position: absolute;
+            width: 2px;
+            height: 100%;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+
+        .marker::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background-color: var(--marker-color);
+        }
+
+        .marker.hour-marker {
+            width: 6px;
+        }
+
+        .marker.hour-marker::before {
+            height: 18px;
+            width: 6px;
+            background-color: var(--marker-hour-color);
+            border-radius: 2px;
+        }
+
+        /* Numbers */
+        .number {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #ffffff;
+            font-size: 1.6rem; 
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            pointer-events: none;
+            line-height: 1;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="clock" id="clock">
+        <div class="hand hour" id="hour-hand"></div>
+        <div class="hand minute" id="minute-hand"></div>
+        <div class="hand second" id="second-hand"></div>
+    </div>
+
+    <script>
+        const clock = document.getElementById('clock');
+        const hourHand = document.getElementById('hour-hand');
+        const minuteHand = document.getElementById('minute-hand');
+        const secondHand = document.getElementById('second-hand');
+
+        function createMarkers() {
+            for (let i = 0; i < 60; i++) {
+                const marker = document.createElement('div');
+                marker.classList.add('marker');
+                
+                if (i % 5 === 0) {
+                    marker.classList.add('hour-marker');
+                }
+
+                marker.style.transform = `translateX(-50%) rotate(${i * 6}deg)`;
+                clock.appendChild(marker);
+            }
+        }
+
+        function createNumbers() {
+            // Radius 132 aligns numbers nicely with the gaps
+            const radius = 132; 
+            
+            for (let i = 1; i <= 12; i++) {
+                const numberDiv = document.createElement('div');
+                numberDiv.classList.add('number');
+                numberDiv.innerText = i;
+                
+                const angleRad = (i * 30 - 90) * (Math.PI / 180);
+                const x = Math.cos(angleRad) * radius;
+                const y = Math.sin(angleRad) * radius;
+                
+                numberDiv.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
+                clock.appendChild(numberDiv);
+            }
+        }
+
+        function setClock() {
+            const now = new Date();
+            
+            const seconds = now.getSeconds();
+            const minutes = now.getMinutes();
+            const hours = now.getHours();
+
+            const secondsRatio = seconds / 60;
+            const minutesRatio = (minutes + secondsRatio) / 60;
+            const hoursRatio = (hours + minutesRatio) / 12;
+
+            const secondsDegrees = secondsRatio * 360;
+            const minutesDegrees = minutesRatio * 360;
+            const hoursDegrees = hoursRatio * 360;
+
+            // Simplified rotation logic (removed translateX since we handled it in CSS)
+            secondHand.style.transform = `rotate(${secondsDegrees}deg)`;
+            minuteHand.style.transform = `rotate(${minutesDegrees}deg)`;
+            hourHand.style.transform = `rotate(${hoursDegrees}deg)`;
+        }
+
+        createMarkers();
+        createNumbers();
+        setInterval(setClock, 1000);
+        setClock();
+
+    </script>
+</body>
+</html>
